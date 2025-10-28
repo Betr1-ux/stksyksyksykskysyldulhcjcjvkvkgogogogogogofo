@@ -209,16 +209,7 @@ toggleBtn.addEventListener('click',()=>{
 });
 const commentsWrap=document.getElementById('commentsWrap');
 const names=["دنيا","علي","سارة","محمود","نورا","خالد","حسن","ليلى","يوسف","أحمد","منة","هاجر","عمر"];
-const msgs=[
-  "منور الدنيا ❤️","البث نار 🔥","جامد أوي يا نجم 👑","ضحكني 😂","فينك من زمان 😍","استمر يا أسطورة 💪",
-  "ده البث المنتظر 🔥🔥","تحفة والله 😍","مش قادر أبطل ضحك 😂","انت عسل 🐝","الناس كلها هنا 👋",
-  "خرافة البث 😱","يخرب بيت الجمال دا 😍","أنا متابعك من زمان ❤️","بث عالمي 🌍","تحية من مصر 🇪🇬",
-  "جميل أوي بجد 🌹","مين زيك؟ 👑","خد قلبي ❤️","ضحكة من الآخر 😂","كمل يا نجم ✨","دا البث اللي مستنيه 💥",
-  "عامل إيه يا حبيبنا ❤️","نورت الشاشة 💡","عظمة على عظمة 💪","حلو الكلام دا 👏","مش طبيعي 😂🔥",
-  "انت عالمي 🌎","كل ثانية أجمل من التانية 💞","استمر بقى 💪","مش قادر أوقف تفرج 😂","حماس 🔥🔥🔥",
-  "يا جدع إيه الجمال دا 😍","نورت الدنيا 🌟","يا رايق 😂","حكاية والله 💫","خرافة البث دا 💣","تحية كبيرة ❤️",
-  "ضحكة مليانة طاقة 😂","منور يا جامد 🔥","قلبي وقع ❤️","بث ناري 🔥🔥🔥","انت فخم 👑","الله عليك يا جميل 💫"
-];
+const msgs=["منور يا اخويا 🔥","اخويا الغالي ❤️","عامل ايه يا نجم 😍","استمر يا وحش 💪","الله عليك ❤️","ضحكتك حلوة 😂","قلب كبير منك ❤️","مفيش زيك 👑","جامد أوي 🔥","تحفة والله 😍","فين الجديد؟","نورتنا","حلو البث","عايز شغلك"];
 function addComment(name,text){
   const row=document.createElement('div');
   row.className='comment';row.style.opacity='0';
@@ -229,7 +220,7 @@ function addComment(name,text){
   row.appendChild(ava);row.appendChild(txt);
   commentsWrap.appendChild(row);
   requestAnimationFrame(()=>row.style.opacity='1');
-  if(commentsWrap.children.length>18)commentsWrap.removeChild(commentsWrap.firstChild);
+  if(commentsWrap.children.length>8)commentsWrap.removeChild(commentsWrap.firstChild);
   setTimeout(()=>{
     row.style.transition='opacity .4s, transform .4s';
     row.style.opacity='0';row.style.transform='translateY(12px)';
@@ -238,27 +229,23 @@ function addComment(name,text){
 }
 setInterval(()=>{
   if(!commentsEnabled)return;
-  for(let i=0;i<3;i++){
-    const n=names[Math.floor(Math.random()*names.length)];
-    const m=msgs[Math.floor(Math.random()*msgs.length)];
-    addComment(n,m);
-    incLikes(300 + Math.floor(Math.random() * 1500));
-    spawnFloatingHeart();
-  }
-},500);
+  const n=names[Math.floor(Math.random()*names.length)];
+  const m=msgs[Math.floor(Math.random()*msgs.length)];
+  addComment(n,m);
+},1200);
 
 /* ===== الهدايا ===== */
 const headGiftArea=document.getElementById('headGiftArea');
 function showHeadGift(){
   const el=document.createElement('div');
-  el.className='head-gift';el.textContent='🌹💖';
+  el.className='head-gift';el.textContent='👑❤️';
   headGiftArea.appendChild(el);
   setTimeout(()=>el.remove(),900);
-  incLikes(200 + Math.floor(Math.random()*800));
-  viewers=Math.min(1.5e9,viewers+Math.floor(100+Math.random()*500));
+  incLikes(8+Math.floor(Math.random()*40));
+  viewers=Math.min(1.5e9,viewers+Math.floor(10+Math.random()*160));
   viewerCountEl.textContent=formatShort(viewers);
 }
 setInterval(()=>{if(Math.random()<0.35)showHeadGift();},4200);
 </script>
 </body>
-</html>
+  </html>
