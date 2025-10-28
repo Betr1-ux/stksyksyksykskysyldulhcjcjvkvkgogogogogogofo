@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>بث مباشر وهمي - موبايل عمودي</title>
+<style>
+  :root{
+    --bg:#000;
+    --muted: rgba(255,255,255,0.9);
+    --bubble: rgba(0,0,0,0.45);
+    --accent: #ff3366;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:#fff;overflow:hidden}
+
+  /* الكاميرا */
+  video#cam{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:0;
+    transform:scaleX(-1); /* تصحيح الانعكاس */
+  }
+
+  .overlay{position:fixed;inset:0;z-index:2;pointer-events:none}
+
+  /* أعلى الشمال: المشاهدين */
+  .top-left{
+    position:absolute;
+    top:10px;
+    left:10px;
+    display:flex;
+    gap:8px;
+    align-items:center;
+    pointer-events:auto;
+    z-index:6;
+  }
+  .pill{
+    background:linear-gradient(180deg,rgba(0,0,0,0.5),rgba(0,0,0,0.35));
+    padding:8px 12px;border-radius:20px;font-weight:700;font-size:14px;color:#fff;backdrop-filter: blur(4px)
+  }
+
+  /* أعلى اليمين: عداد التكبيسات */
+  .top-right-total {
+    position:absolute;
+    top:10px;
+    right:10px;
+    display:flex;
+    gap:8px;
+    align-items:center;
+    z-index:6;
+  }
+
+  /* عمود القلوب */
+  .right-column{
+    position:absolute;
+    right:10px;
+    top:18%;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    align-items:center;
+    pointer-events:auto;
+    z-index:6;
+  }
+  .like-box{
+    width:56px;height:56px;border-radius:14px;background:rgba(0,0,0,0.45);
+    display:flex;align-items:center;justify-content:center;flex-direction:column;
+    border:1px solid rgba(255,255,255,0.06)
+  }
+  .like-box .count{font-size:12px;opacity:0.95}
+
+  .float-zone{position:relative;width:64px;height:320px;overflow:visible;display:flex;align-items:flex-end;justify-content:center}
+  .floating-heart{position:absolute;bottom:6px;right:6px;font-size:20px;animation:rise 2600ms linear forwards}
+  @keyframes rise{0%{transform:translateY(0) scale(1);opacity:1}30%{transform:translateY(-80px) scale(1.08)}100%{transform:translateY(-320px) scale(.6);opacity:0}}
+
+  /* ===== التعليقات (من أسفل زي تيك توك) ===== */
+  .comments-bar{
+    position:absolute;
+    left:0; right:0;
+    bottom:0; /* تبدأ من أسفل تمامًا */
+    display:flex;
+    justify-content:center;
+    pointer-events:none;
+    z-index:6;
+    padding-bottom:4vh; /* فراغ خفيف فوق الحافة */
+  }
+  .comments-wrap{
+    width:94%;
+    max-width:720px;
+    display:flex;
+    flex-direction:column-reverse; /* الأحدث يظهر أسفل */
+    gap:6px;
+    align-items:flex-start;
+    overflow:hidden;
+    max-height:22vh; /* ارتفاع محدود عشان الوش يبان */
+  }
+  .comment{
+    pointer-events:auto;
+    background: linear-gradient(90deg, rgba(0,0,0,0.6), rgba(0,0,0,0.45));
+    padding:8px 12px;
+    border-radius:999px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    max-width:100%;
+    animation:slideUp .35s ease;
+    color:#fff;
+    font-size:15px;
+  }
+  @keyframes slideUp{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .avatar{
+    width:36px;height:36px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    color:#111;font-weight:700;flex-shrink:0;
+    background:linear-gradient(120deg,#ffd1dc,#ff9aa2);
+    box-shadow:0 6px 18px rgba(0,0,0,0.4);
+    font-size:14px
+  }
+  .msg-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70%}
+
+  /* هدية فوق الرأس */
+  .head-gift{
+    position:absolute;
+    top:14%;
+    left:50%;
+    transform:translateX(-50%) translateY(-60%);
+    z-index:8;
+    font-size:70px;
+    pointer-events:none;
+    filter: drop-shadow(0 12px 24px rgba(0,0,0,0.45));
+    opacity:0;
+    animation:popGift .9s ease forwards;
+  }
+  @keyframes popGift{
+    0%{transform:translateX(-50%) translateY(-60%) scale(.2);opacity:0}
+    30%{transform:translateX(-50%) translateY(-66%) scale(1.12);opacity:1}
+    60%{transform:translateX(-50%) translateY(-72%) scale(.95);opacity:1}
+    100%{transform:translateX(-50%) translateY(-120%) scale(.6);opacity:0}
+  }
+
+  @media (max-width:520px){
+    .head-gift{top:16%;font-size:62px}
+    .comments-wrap{width:96%;max-height:26vh}
+    .avatar{width:34px;height:34px;font-size:13px}
+    .like-box{width:52px;height:52px}
+  }
+</style>
+</head>
+<body>
+
+  <video id="cam" autoplay playsinline muted></video>
+
+  <div class="overlay">
+    <!-- المشاهدين -->
+    <div class="top-left">
+      <div class="pill" id="liveBadge">بث مباشر</div>
+      <div class="pill" id="viewerPill">👁️ <span id="viewerCount">2,000</span></div>
+    </div>
+
+    <!-- عداد التكبيسات -->
+    <div class="top-right-total">
+      <div class="pill" id="totalLikes">❤️ <span id="totalLikesCount">1,200</span></div>
+    </div>
+
+    <!-- عمود القلوب -->
+    <div class="right-column">
+      <div class="float-zone" id="floatZone"></div>
+      <div class="like-box" id="likeBox">
+        <div style="font-size:18px">❤️</div>
+        <div class="count" id="likeCount">1.2k</div>
+      </div>
+    </div>
+
+    <!-- التعليقات -->
+    <div class="comments-bar">
+      <div class="comments-wrap" id="commentsWrap"></div>
+    </div>
+
+    <!-- هدية الرأس -->
+    <div id="headGiftArea"></div>
+  </div>
+
+<script>
+/* الكاميرا */
+const video = document.getElementById('cam');
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
+  .then(stream => video.srcObject = stream)
+  .catch(err => console.warn('الكاميرا غير متاحة:', err));
+
+/* المشاهدين */
+let viewers = 2000;
+const viewerCountEl = document.getElementById('viewerCount');
+function updateViewers(){
+  let delta = Math.floor((Math.random() - 0.5) * 180);
+  if(Math.random() < 0.08) delta += Math.floor(100 + Math.random()*8000);
+  viewers = Math.max(200, Math.min(60000, viewers + delta));
+  viewerCountEl.textContent = viewers.toLocaleString();
+}
+setInterval(updateViewers, 1400);
+
+/* اللايكات */
+let likes = 1200;
+const likeCountEl = document.getElementById('likeCount');
+const totalLikesEl = document.getElementById('totalLikesCount');
+function incLikes(n=1){
+  likes += Math.round(n);
+  likeCountEl.textContent = formatShort(likes);
+  totalLikesEl.textContent = likes.toLocaleString();
+}
+function formatShort(n){
+  if(n >= 1000) return (n/1000).toFixed(1).replace('.0','') + 'k';
+  return String(n);
+}
+setInterval(()=>{ incLikes(1+Math.floor(Math.random()*4)); spawnFloatingHeart(); }, 500+Math.random()*700);
+
+/* القلوب */
+const floatZone = document.getElementById('floatZone');
+function spawnFloatingHeart(){
+  const el = document.createElement('div');
+  el.className='floating-heart';
+  const size=16+Math.random()*26;
+  el.style.fontSize=size+'px';
+  el.style.right=(6+Math.random()*30)+'px';
+  el.textContent=Math.random()<0.65?'❤':'💖';
+  floatZone.appendChild(el);
+  setTimeout(()=>el.remove(),2800);
+}
+
+/* التعليقات */
+const commentsWrap=document.getElementById('commentsWrap');
+const names=["دنيا","علي","سارة","محمود","نورا","خالد","حسن","ليلى","يوسف","أحمد","منة","هاجر","عمر"];
+const msgs=[
+"منور يا اخويا 🔥","اخويا الغالي ❤️","عامل ايه يا نجم 😍","استمر يا وحش 💪",
+"الله عليك ❤️","ضحكتك حلوة 😂","قلب كبير منك ❤️","مفيش زيك 👑","جامد أوي 🔥","تحفة والله 😍",
+"فين الجديد؟","نورتنا","حلو البث","عايز شغلك"
+];
+function addComment(name,text){
+  const row=document.createElement('div');
+  row.className='comment';
+  row.style.opacity='0';
+  const ava=document.createElement('div'); ava.className='avatar';
+  const initials=name.split(' ').map(s=>s[0]).slice(0,2).join('');
+  ava.textContent=initials;
+  const txt=document.createElement('div'); txt.className='msg-text';
+  txt.textContent=`${name}: ${text}`;
+  row.appendChild(ava); row.appendChild(txt);
+  commentsWrap.appendChild(row);
+  requestAnimationFrame(()=>row.style.opacity='1');
+  if(commentsWrap.children.length>6){ commentsWrap.removeChild(commentsWrap.firstChild); }
+  setTimeout(()=>{ row.style.transition='opacity .4s, transform .4s';
+    row.style.opacity='0'; row.style.transform='translateY(12px)';
+    setTimeout(()=>row.remove(),450);
+  },6000+Math.random()*6000);
+}
+setInterval(()=>{
+  if(Math.random()<0.9){
+    const n=names[Math.floor(Math.random()*names.length)];
+    const m=msgs[Math.floor(Math.random()*msgs.length)];
+    addComment(n,m);
+    viewers=Math.min(60000,viewers+Math.floor(Math.random()*6));
+    viewerCountEl.textContent=viewers.toLocaleString();
+  }
+},1200+Math.random()*900);
+
+/* هدية */
+const headGiftArea=document.getElementById('headGiftArea');
+function showHeadGift(){
+  const el=document.createElement('div');
+  el.className='head-gift';
+  el.textContent='👑❤️';
+  headGiftArea.appendChild(el);
+  setTimeout(()=>el.remove(),900);
+  incLikes(8+Math.floor(Math.random()*40));
+  viewers=Math.min(60000,viewers+Math.floor(10+Math.random()*160));
+  viewerCountEl.textContent=viewers.toLocaleString();
+}
+setInterval(()=>{ if(Math.random()<0.35){ showHeadGift(); } },4200+Math.random()*5200);
+</script>
+</body>
+  </html>
